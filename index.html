@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mini Accounting Software</title>
+
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Remix Icon -->
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- jsPDF & AutoTable -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <!-- Auth Section -->
+    <div id="auth-section">
+        <div class="split-screen-container">
+            <div class="brand-panel">
+                <div class="brand-content">
+                    <h1><i class="ri-money-dollar-circle-fill"></i> Strategy</h1>
+                    <p>Money Maps: Navigate Business Growth with Clarity</p>
+                </div>
+            </div>
+            <div class="form-panel">
+                <!-- Login Form -->
+                <form id="login-form" class="auth-form">
+                    <div class="form-header">
+                        <h2>Welcome Back</h2>
+                        <p>Please enter your details to sign in</p>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="login-username">Username</label>
+                        <div class="input-wrapper">
+                            <i class="ri-user-line"></i>
+                            <input type="text" id="login-username" required placeholder="Enter your username">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="login-password">Password</label>
+                        <div class="input-wrapper">
+                            <i class="ri-lock-line"></i>
+                            <input type="password" id="login-password" required placeholder="Enter your password">
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-block">Sign In</button>
+
+                    <p class="switch-auth">
+                        Don't have an account? <a href="#" id="show-register">Create account</a>
+                    </p>
+                </form>
+
+                <!-- Register Form -->
+                <form id="register-form" class="auth-form hidden">
+                    <div class="form-header">
+                        <h2>Create Account</h2>
+                        <p>Start your journey with Strategy</p>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="reg-username">Username</label>
+                        <div class="input-wrapper">
+                            <i class="ri-user-add-line"></i>
+                            <input type="text" id="reg-username" required placeholder="Choose a username">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="reg-password">Password</label>
+                        <div class="input-wrapper">
+                            <i class="ri-lock-2-line"></i>
+                            <input type="password" id="reg-password" required placeholder="Create a password">
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-block">Sign Up</button>
+
+                    <p class="switch-auth">
+                        Already have an account? <a href="#" id="show-login">Sign In</a>
+                    </p>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main App App Layout (Hidden until logged in) -->
+    <div id="app-container" class="hidden">
+
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="brand">
+                <i class="ri-money-dollar-circle-fill"></i> <span>Strategy</span>
+            </div>
+            <nav>
+                <ul>
+                    <li class="active" data-target="dashboard"><i class="ri-dashboard-line"></i> Dashboard</li>
+                    <li data-target="journal"><i class="ri-booklet-line"></i> Journal Entry</li>
+                    <li data-target="ledger"><i class="ri-book-2-line"></i> Ledger</li>
+                    <li data-target="trial-balance"><i class="ri-scales-3-line"></i> Trial Balance</li>
+                    <li data-target="trading-pl"><i class="ri-store-2-line"></i> Trading & P&L</li>
+                    <li data-target="balance-sheet"><i class="ri-bank-card-line"></i> Balance Sheet</li>
+                </ul>
+            </nav>
+            <div class="user-profile">
+                <span id="display-username">User</span>
+                <button id="logout-btn"><i class="ri-logout-box-r-line"></i></button>
+            </div>
+            <div class="theme-toggle">
+                <i class="ri-moon-line"></i>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+
+            <!-- Dashboard Section -->
+            <section id="dashboard" class="content-section active">
+                <header>
+                    <h1>Dashboard</h1>
+                    <button class="btn btn-secondary" onclick="refreshAllData()"><i class="ri-refresh-line"></i>
+                        Refresh</button>
+                </header>
+                <div class="stats-grid">
+                    <div class="card stat-card">
+                        <h3>Total Assets</h3>
+                        <p class="amount" id="dash-assets">$0.00</p>
+                    </div>
+                    <div class="card stat-card">
+                        <h3>Total Liabilities</h3>
+                        <p class="amount" id="dash-liabilities">$0.00</p>
+                    </div>
+                    <div class="card stat-card">
+                        <h3>Net Profit/Loss</h3>
+                        <p class="amount" id="dash-net-profit">$0.00</p>
+                    </div>
+                </div>
+                <div class="charts-container">
+                    <div class="card chart-card">
+                        <h3>Assets vs Liabilities</h3>
+                        <canvas id="chart-assets-liabilities"></canvas>
+                    </div>
+                    <div class="card chart-card">
+                        <h3>Income vs Expense</h3>
+                        <canvas id="chart-income-expense"></canvas>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Journal Entry Section -->
+            <section id="journal" class="content-section">
+                <header>
+                    <h1>Journal Entry</h1>
+                </header>
+                <div class="card form-card">
+                    <form id="journal-form">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Date</label>
+                                <input type="date" id="entry-date" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Account</label>
+                                <select id="entry-account" required>
+                                    <!-- Options populated by JS -->
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Debit Amount</label>
+                                <input type="number" id="entry-debit" min="0" step="0.01" placeholder="0.00">
+                            </div>
+                            <div class="form-group">
+                                <label>Credit Amount</label>
+                                <input type="number" id="entry-credit" min="0" step="0.01" placeholder="0.00">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Narration (Description)</label>
+                            <input type="text" id="entry-narration" placeholder="e.g. Sold goods for cash" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary"><i class="ri-add-circle-line"></i> Add
+                            Entry</button>
+                    </form>
+                </div>
+
+                <div class="card mt-4">
+                    <h3>Recent Entries</h3>
+                    <div class="table-responsive">
+                        <table id="journal-table">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Account</th>
+                                    <th>Narration</th>
+                                    <th>Debit</th>
+                                    <th>Credit</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Entries populated by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Ledger Section -->
+            <section id="ledger" class="content-section">
+                <header>
+                    <h1>General Ledger</h1>
+                    <div class="controls">
+                        <select id="ledger-account-select">
+                            <option value="">Select Account</option>
+                        </select>
+                        <button class="btn btn-outline" onclick="exportPDF('ledger')"><i class="ri-file-pdf-line"></i>
+                            PDF</button>
+                    </div>
+                </header>
+                <div class="card table-card">
+                    <table id="ledger-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Particulars</th>
+                                <th>Debit</th>
+                                <th>Credit</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                        <tfoot>
+                            <tr>
+                                <th colspan="2">Total</th>
+                                <th id="ledger-total-debit">0.00</th>
+                                <th id="ledger-total-credit">0.00</th>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Trial Balance Section -->
+            <section id="trial-balance" class="content-section">
+                <header>
+                    <h1>Trial Balance</h1>
+                    <button class="btn btn-outline" onclick="exportPDF('trial-balance')"><i
+                            class="ri-file-pdf-line"></i> PDF</button>
+                </header>
+                <div class="card table-card">
+                    <table id="trial-balance-table">
+                        <thead>
+                            <tr>
+                                <th>Account Name</th>
+                                <th>Debit Balance</th>
+                                <th>Credit Balance</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                        <tfoot>
+                            <tr>
+                                <th>Grand Total</th>
+                                <th id="tb-total-debit">0.00</th>
+                                <th id="tb-total-credit">0.00</th>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Trading & P&L Section -->
+            <section id="trading-pl" class="content-section">
+                <header>
+                    <h1>Trading & Profit/Loss Account</h1>
+                    <button class="btn btn-outline" onclick="exportPDF('trading-pl')"><i class="ri-file-pdf-line"></i>
+                        PDF</button>
+                </header>
+
+                <div class="two-col-grid">
+                    <!-- Trading Account -->
+                    <div class="card">
+                        <h3>Trading Account</h3>
+                        <table id="trading-table">
+                            <thead>
+                                <tr>
+                                    <th>Particulars</th>
+                                    <th>Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                        <div class="summary-row">
+                            <span>Gross Profit/Loss:</span>
+                            <span id="gross-profit">0.00</span>
+                        </div>
+                    </div>
+
+                    <!-- P&L Account -->
+                    <div class="card">
+                        <h3>Profit & Loss Account</h3>
+                        <table id="pl-table">
+                            <thead>
+                                <tr>
+                                    <th>Particulars</th>
+                                    <th>Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                        <div class="summary-row highlight">
+                            <span>Net Profit/Loss:</span>
+                            <span id="net-profit">0.00</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Balance Sheet Section -->
+            <section id="balance-sheet" class="content-section">
+                <header>
+                    <h1>Balance Sheet</h1>
+                    <button class="btn btn-outline" onclick="exportPDF('balance-sheet')"><i
+                            class="ri-file-pdf-line"></i> PDF</button>
+                </header>
+                <div class="two-col-grid">
+                    <div class="card">
+                        <h3>Liabilities & Capital</h3>
+                        <table id="bs-liabilities-table">
+                            <tbody></tbody>
+                        </table>
+                        <div class="total-row">
+                            <span>Total:</span>
+                            <span id="bs-total-liabilities">0.00</span>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <h3>Assets</h3>
+                        <table id="bs-assets-table">
+                            <tbody></tbody>
+                        </table>
+                        <div class="total-row">
+                            <span>Total:</span>
+                            <span id="bs-total-assets">0.00</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
